@@ -1,0 +1,86 @@
+export { }; // Make this file a module to avoid global scope conflicts
+const API_URL = process.env.API_URL || 'http://127.0.0.1:3003';
+
+async function main() {
+    console.log('🚀 Starting Category Verification...');
+
+    // 1. Login as Admin
+    console.log('\n1. Logging in as Admin...');
+    const loginRes = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'admin@loomspace.com', password: 'password123' }),
+    });
+
+    if (!loginRes.ok) throw new Error(`Login failed: ${loginRes.statusText}`);
+    const { token } = await loginRes.json();
+    console.log('✅ Admin logged in.');
+
+    // 2. Create Category
+    console.log('\n2. Creating Category...');
+    const newCategory = { name: 'Test Category ' + Date.now() };
+    const createRes = await fetch(`${API_URL}/categories`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newCategory)
+    });
+
+    if (!createRes.ok) {
+        const err = await createRes.text();
+        throw new Error(`Create category failed: ${err}`);
+    }
+    const createdCategory = await createRes.json();
+    console.log(`✅ Category created: ${createdCategory.name} (${createdCategory.id})`);
+
+    // 3. Verify Category Exists
+    console.log('\n3. Verifying Category Exists...');
+    const listRes = await fetch(`${API_URL}/categories`);
+    const categories = await listRes.json();
+    const found = categories.find((c: any) => c.id === createdCategory.id);
+    if (!found) throw new Error('Category not found in list');
+    console.log('✅ Category found in list.');
+
+    // 4. Update Category
+    console.log('\n4. Updating Category...');
+    const updateRes = await fetch(`${API_URL}/categories/${createdCategory.id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: 'Updated Category ' + Date.now() })
+    });
+
+    if (!updateRes.ok) throw new Error('Update failed');
+    const updatedCategory = await updateRes.json();
+    if (updatedCategory.name === createdCategory.name) throw new Error('Name not updated');
+    console.log('✅ Category updated.');
+
+    // 5. Delete Category
+    console.log('\n5. Deleting Category...');
+    const deleteRes = await fetch(`${API_URL}/categories/${createdCategory.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!deleteRes.ok) throw new Error('Delete failed');
+    console.log('✅ Category deleted.');
+
+    // 6. Verify Category Deleted
+    console.log('\n6. Verifying Category Deleted...');
+    const listRes2 = await fetch(`${API_URL}/categories`);
+    const categories2 = await listRes2.json();
+    const found2 = categories2.find((c: any) => c.id === createdCategory.id);
+    if (found2) throw new Error('Category still exists in list');
+    console.log('✅ Category gone from list.');
+
+    console.log('\n🎉 ALL CATEGORY TESTS PASSED!');
+}
+
+main().catch(e => {
+    console.error('\n❌ TEST FAILED:', e);
+    process.exit(1);
+});
