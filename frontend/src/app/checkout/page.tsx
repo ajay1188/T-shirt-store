@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import Image from 'next/image';
+
+
+
 
 export default function Checkout() {
     const { cart, cartTotal, clearCart } = useCart();
@@ -124,7 +128,13 @@ export default function Checkout() {
                                 {cart.map((item) => (
                                     <li key={`${item.productId}-${item.size}`} className="flex py-6 px-4 sm:px-6">
                                         <div className="flex-shrink-0">
-                                            <Image src={item.image || 'https://placehold.co/100'} alt={item.name} width={64} height={64} className="w-16 h-16 rounded-md object-center object-cover" />
+                                            <Image
+                                                src={item.image || 'https://placehold.co/100'}
+                                                alt={item.name}
+                                                width={64}
+                                                height={64}
+                                                className="w-16 h-16 rounded-md object-center object-cover"
+                                            />
                                         </div>
                                         <div className="ml-6 flex-1 flex flex-col">
                                             <div className="flex">

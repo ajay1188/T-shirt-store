@@ -1,32 +1,46 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import api from '@/lib/api';
-import ProductCard from '@/components/ProductCard';
+export const dynamic = "force-dynamic";
 
-export default function Shop() {
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import api from "@/lib/api";
+import ProductCard from "@/components/ProductCard";
+
+// Product type matching the ProductCard component
+interface Product {
+    id: string;
+    name: string;
+    slug: string;
+    price: string;
+    images: string[];
+    category: {
+        name: string;
+    };
+}
+
+function ShopContent() {
     const searchParams = useSearchParams();
-    const category = searchParams.get('category');
-    const [products, setProducts] = useState([]);
+    const category = searchParams.get("category");
+    const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setLoading(true);
-        let url = '/products';
-        if (category) {
-            url += `?category=${category}`;
-        }
-
-        api.get(url)
-            .then(res => {
+        const fetchProducts = async () => {
+            setLoading(true);
+            let url = "/products";
+            if (category) {
+                url += `?category=${category}`;
+            }
+            try {
+                const res = await api.get(url);
                 setProducts(res.data);
-                setLoading(false);
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error(err);
-                setLoading(false);
-            });
+            }
+            setLoading(false);
+        };
+        fetchProducts();
     }, [category]);
 
     return (
@@ -34,7 +48,7 @@ export default function Shop() {
             <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
                 <div className="border-b border-gray-200 pb-10">
                     <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 capitalize">
-                        {category ? `${category} Collection` : 'All Products'}
+                        {category ? `${category} Collection` : "All Products"}
                     </h1>
                     <p className="mt-4 text-base text-gray-500">
                         Check out our latest arrivals.
@@ -45,7 +59,7 @@ export default function Shop() {
                     {loading ? (
                         <p>Loading...</p>
                     ) : products.length > 0 ? (
-                        products.map((product: any) => (
+                        products.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))
                     ) : (
@@ -54,5 +68,13 @@ export default function Shop() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function Shop() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+            <ShopContent />
+        </Suspense>
     );
 }
