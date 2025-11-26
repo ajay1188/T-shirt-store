@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
 import Categories from './pages/Categories';
+import Users from './pages/Users';
+import Reports from './pages/Reports';
 import ToastProvider from './components/ToastProvider';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -32,6 +34,8 @@ function App() {
             <Route path="products" element={<Products />} />
             <Route path="orders" element={<Orders />} />
             <Route path="categories" element={<Categories />} />
+            <Route path="users" element={<Users />} />
+            <Route path="reports" element={<Reports />} />
           </Route>
         </Routes>
       </AuthProvider>

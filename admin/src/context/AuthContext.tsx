@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 
 interface User {
@@ -25,25 +25,22 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-
-
-    useEffect(() => {
+    const [user, setUser] = useState<User | null>(() => {
         const token = localStorage.getItem('adminToken');
         const storedUser = localStorage.getItem('adminUser');
-
         if (token && storedUser) {
             try {
-                setUser(JSON.parse(storedUser));
+                return JSON.parse(storedUser);
             } catch (error) {
                 console.error('Failed to parse stored user', error);
                 localStorage.removeItem('adminUser');
                 localStorage.removeItem('adminToken');
+                return null;
             }
         }
-        setLoading(false);
-    }, []);
+        return null;
+    });
+    const [loading] = useState(false);
 
     const login = (token: string, userData: User) => {
         localStorage.setItem('adminToken', token);
@@ -64,4 +61,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
